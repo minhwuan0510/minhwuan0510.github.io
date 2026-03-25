@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10A6 THPT Số 2 An Nhơn (2025-2026)</title>
+    <style>
+        :root {
+            --bg-blue: #000428; 
+            --gradient-blue: linear-gradient(to bottom, #004e92, #000428);
+            --accent-color: #00d2ff;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; padding: 0; 
+            background: var(--gradient-blue); 
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* --- 1. HIỆU ỨNG PHÁO HOA --- */
+        #fireworks {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 1; pointer-events: none;
+        }
+
+        /* --- 2. THÔNG BÁO CHÀO MỪNG (WELCOME POPUP) --- */
+        #welcomeOverlay {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 10000; /* Luôn nằm trên cùng */
+            transition: 0.5s;
+        }
+        .welcome-box {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            padding: 40px; border-radius: 20px;
+            text-align: center; border: 2px solid var(--accent-color);
+            max-width: 500px; width: 90%;
+            box-shadow: 0 0 30px var(--accent-color);
+        }
+        .welcome-box h2 { color: var(--accent-color); margin-bottom: 20px; font-size: 2em; }
+        .welcome-box p { font-size: 1.2em; line-height: 1.6; margin-bottom: 30px; }
+        .btn-start {
+            background: var(--accent-color); color: #000;
+            padding: 12px 30px; border: none; border-radius: 30px;
+            font-weight: bold; cursor: pointer; font-size: 1em;
+            transition: 0.3s;
+        }
+        .btn-start:hover { transform: scale(1.1); box-shadow: 0 0 20px var(--accent-color); }
+
+        /* --- 3. BỐ CỤC CHÍNH --- */
+        header { 
+            position: relative; z-index: 2; text-align: center; padding: 60px 20px; 
+            background: rgba(255, 255, 255, 0.05); border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        header h1 { font-size: 3em; margin: 0; text-shadow: 0 0 15px var(--accent-color); }
+
+        .split-container {
+            position: relative; z-index: 2; display: grid;
+            grid-template-columns: 1fr 1fr; gap: 10px; padding: 20px;
+        }
+
+        .column { background: rgba(0,0,0,0.2); border-radius: 15px; padding: 15px; }
+        .column-header {
+            text-align: center; padding: 15px; margin-bottom: 20px;
+            border-radius: 50px; font-weight: bold; position: sticky; top: 20px; z-index: 10;
+            background: rgba(0, 210, 255, 0.2); backdrop-filter: blur(10px);
+            border: 1px solid var(--accent-color);
+        }
+
+        .content-list { display: flex; flex-direction: column; gap: 20px; }
+        .card {
+            background: rgba(255, 255, 255, 0.05); border-radius: 12px; overflow: hidden;
+            cursor: pointer; transition: 0.3s; border: 1px solid rgba(255,255,255,0.1);
+        }
+        .card:hover { transform: translateY(-5px); border-color: var(--accent-color); }
+        .card img, .card video { width: 100%; display: block; object-fit: cover; max-height: 400px; }
+        .card-label { padding: 10px; text-align: center; font-size: 0.85em; opacity: 0.8; }
+
+        /* Modal xem chi tiết */
+        .modal { 
+            display: none; position: fixed; z-index: 99999; 
+            left: 0; top: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.95); justify-content: center; align-items: center; 
+        }
+        .modal-content { max-width: 90%; max-height: 85vh; border-radius: 10px; box-shadow: 0 0 20px var(--accent-color); }
+        .close-btn { position: absolute; top: 20px; right: 30px; color: white; font-size: 50px; cursor: pointer; }
+
+        @media (max-width: 768px) { .split-container { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+    <canvas id="fireworks"></canvas>
+
+    <div id="welcomeOverlay">
+        <div class="welcome-box">
+            <h2>Xin chào! 👋</h2>
+            <p>Chào mừng bạn đã đến với gian hàng lớp 10A6.<br>Chúc bạn có một ngày thật tuyệt vời, cảm ơn vì đã đến!</p>
+            <button class="btn-start" onclick="closeWelcome()">Bắt đầu khám phá</button>
+        </div>
+    </div>
+
+    <header>
+        <h1>LỚP 10A6 - THPT SỐ 2 AN NHƠN</h1>
+        <p>Niên khóa 2025 - 2026</p>
+    </header>
+
+    <div class="split-container">
+        <div class="column">
+            <div class="column-header">📸 HÌNH ẢNH KỶ NIỆM (52)</div>
+            <div class="content-list" id="photoCol"></div>
+        </div>
+
+        <div class="column">
+            <div class="column-header">🎬 VIDEO LỚP MÌNH (7)</div>
+            <div class="content-list" id="videoCol"></div>
+        </div>
+    </div>
+
+    <div id="viewModal" class="modal" onclick="closeModal(event)">
+        <span class="close-btn">&times;</span>
+        <div id="modalContainer"></div>
+    </div>
+
+    <script>
+        /* --- 1. TỰ ĐỘNG LOAD DỮ LIỆU --- */
+        const photoCol = document.getElementById('photoCol');
+        const videoCol = document.getElementById('videoCol');
+
+        for (let i = 1; i <= 52; i++) {
+            photoCol.innerHTML += `
+                <div class="card" onclick="openModal('img', 'anh/${i}.jpg')">
+                    <img src="anh/${i}.jpg" loading="lazy">
+                    <div class="card-label">Ảnh kỷ niệm #${i}</div>
+                </div>`;
+        }
+
+        for (let i = 1; i <= 7; i++) {
+            videoCol.innerHTML += `
+                <div class="card" onclick="openModal('video', 'video/${i}.mp4')">
+                    <video src="video/${i}.mp4" muted></video>
+                    <div class="card-label">Video kỷ niệm #${i}</div>
+                </div>`;
+        }
+
+        /* --- 2. XỬ LÝ CHÀO MỪNG & MODAL --- */
+        function closeWelcome() {
+            document.getElementById('welcomeOverlay').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('welcomeOverlay').style.display = 'none';
+            }, 500);
+        }
+
+        const modal = document.getElementById('viewModal');
+        const container = document.getElementById('modalContainer');
+
+        function openModal(type, src) {
+            modal.style.display = 'flex';
+            container.innerHTML = (type === 'img') 
+                ? `<img src="${src}" class="modal-content">`
+                : `<video src="${src}" class="modal-content" controls autoplay></video>`;
+        }
+
+        function closeModal(event) {
+            if (event.target === modal || event.target.className === 'close-btn') {
+                modal.style.display = 'none';
+                container.innerHTML = '';
+            }
+        }
+
+        /* --- 3. HỆ THỐNG PHÁO HOA CANVAS --- */
+        const canvas = document.getElementById('fireworks');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x; this.y = y; this.color = color;
+                this.velocity = { x: (Math.random() - 0.5) * 12, y: (Math.random() - 0.5) * 12 };
+                this.alpha = 1;
+                this.friction = 0.95;
+            }
+            draw() {
+                ctx.globalAlpha = this.alpha;
+                ctx.beginPath(); ctx.arc(this.x, this.y, 2.5, 0, Math.PI * 2);
+                ctx.fillStyle = this.color; ctx.fill();
+            }
+            update() {
+                this.velocity.x *= this.friction; this.velocity.y *= this.friction;
+                this.x += this.velocity.x; this.y += this.velocity.y;
+                this.alpha -= 0.012;
+            }
+        }
+
+        function createFirework() {
+            const x = Math.random() * canvas.width;
+            const y = Math.random() * (canvas.height * 0.7);
+            const color = `hsl(${Math.random() * 360}, 100%, 60%)`;
+            for (let i = 0; i < 80; i++) {
+                particles.push(new Particle(x, y, color));
+            }
+        }
+
+        function animate() {
+            ctx.fillStyle = 'rgba(0, 4, 40, 0.15)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            particles.forEach((p, i) => {
+                if (p.alpha > 0) { p.update(); p.draw(); } 
+                else { particles.splice(i, 1); }
+            });
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+        // Bắn pháo hoa liên tục ngay từ khi mở trang
+        setInterval(createFirework, 800);
+    </script>
+</body>
+</html>
