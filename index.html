@@ -141,10 +141,10 @@
                 </div>`;
         }
 
-        for (let i = 1; i <= 7; i++) {
+        for (let i = 1; i <= 6; i++) {
             videoCol.innerHTML += `
                 <div class="card" onclick="openModal('video', 'video/${i}.mp4')">
-                    <video src="video/${i}.mp4" muted></video>
+                    <video src="${i}.mp4" muted></video>
                     <div class="card-label">Video kỷ niệm #${i}</div>
                 </div>`;
         }
